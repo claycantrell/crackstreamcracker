@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Iframe Extractor - Educational Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f5f7;
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #1d1d1f;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        .header h1 {
+            font-size: 56px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            line-height: 1.07;
+            color: #1d1d1f;
+            margin-bottom: 12px;
+        }
+        
+        .header p {
+            font-size: 21px;
+            line-height: 1.38;
+            font-weight: 400;
+            letter-spacing: 0.011em;
+            color: #86868b;
+        }
+        
+        .input-section {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 18px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            margin-bottom: 32px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .input-group input {
+            flex: 1;
+            padding: 14px 16px;
+            border: 1.5px solid #d2d2d7;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 400;
+            color: #1d1d1f;
+            background: #ffffff;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .input-group input::placeholder {
+            color: #86868b;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #007aff;
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+        }
+        
+        .btn {
+            padding: 14px 32px;
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+        }
+        
+        .btn:hover {
+            background: #0051d5;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 32px;
+            color: #86868b;
+            font-size: 17px;
+            font-weight: 500;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .error {
+            background: #ff3b30;
+            color: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: none;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .error.active {
+            display: block;
+        }
+        
+        .player-section {
+            background: #ffffff;
+            padding: 32px;
+            border-radius: 18px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            display: none;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        
+        .player-section.active {
+            display: block;
+        }
+        
+        .player-section h2 {
+            color: #1d1d1f;
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+        
+        .player-container {
+            width: 100%;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .player-container iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+        
+        .stream-selector {
+            margin-bottom: 24px;
+        }
+        
+        .stream-selector label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 17px;
+            color: #1d1d1f;
+        }
+        
+        .stream-selector select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #d2d2d7;
+            border-radius: 12px;
+            font-size: 17px;
+            color: #1d1d1f;
+            background: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231d1d1f' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+        }
+        
+        .stream-selector select:focus {
+            outline: none;
+            border-color: #007aff;
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+        }
+        
+        .info {
+            background: #f5f5f7;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin-top: 24px;
+        }
+        
+        .info h3 {
+            margin-bottom: 12px;
+            color: #1d1d1f;
+            font-size: 21px;
+            font-weight: 600;
+        }
+        
+        .info ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .info li {
+            padding: 6px 0;
+            color: #86868b;
+            font-size: 15px;
+            font-weight: 400;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(0, 122, 255, 0.2);
+            border-radius: 50%;
+            border-top: 3px solid #007aff;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Stream Iframe Extractor</h1>
+            <p>Educational tool for analyzing embedded video players</p>
+        </div>
+        
+        <!-- Legal Disclaimer -->
+        <div style="background: #ffffff; padding: 24px 28px; margin: 24px 0; border-radius: 12px; border: 1.5px solid #d2d2d7; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+            <h3 style="margin-top: 0; font-size: 19px; font-weight: 600; color: #1d1d1f; margin-bottom: 12px;">⚖️ Legal Notice & Terms of Use</h3>
+            <p style="font-size: 15px; margin: 12px 0; line-height: 1.5; color: #1d1d1f;">
+                <strong>This tool is for educational and research purposes only.</strong> By using this tool, you agree that:
+            </p>
+            <ul style="font-size: 14px; line-height: 1.6; margin: 12px 0 12px 24px; color: #1d1d1f;">
+                <li style="margin-bottom: 6px;">You will only use this tool on content you own or have legal permission to access</li>
+                <li style="margin-bottom: 6px;">You are responsible for complying with all applicable copyright laws and terms of service</li>
+                <li style="margin-bottom: 6px;">This tool does not host, store, or distribute any content - it only analyzes webpage structure</li>
+                <li style="margin-bottom: 6px;">The developers are not responsible for any misuse of this tool</li>
+                <li style="margin-bottom: 6px;">You will not use this tool to circumvent digital rights management (DRM) or access control measures</li>
+            </ul>
+            <p style="font-size: 13px; margin-top: 12px; color: #86868b; line-height: 1.5;">
+                <strong>Educational Purpose:</strong> This tool demonstrates web scraping techniques, iframe extraction, and client-side security concepts for learning purposes.
+            </p>
+        </div>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <input type="text" id="urlInput" placeholder="Enter webpage URL to analyze embedded players..." value="">
+                <button class="btn" onclick="extractStream()">Analyze Page</button>
+            </div>
+            <p style="color: #86868b; margin-top: 12px; font-size: 15px;">
+                🎬 Automatically detects iframe elements and embedded video players for technical analysis
+            </p>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing page structure...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <!-- Troubleshooting Guide -->
+        <div id="troubleshootingGuide" style="display: none; background: #ffffff; padding: 28px 32px; margin: 24px 0; border-radius: 12px; border: 1.5px solid #d2d2d7; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+            <h3 style="margin-top: 0; color: #1d1d1f; font-size: 24px; font-weight: 600; margin-bottom: 16px;">🔧 Stream Not Working? Troubleshooting Guide</h3>
+            
+            <div style="margin: 16px 0;">
+                <p style="font-weight: 600; font-size: 17px; color: #1d1d1f; margin-bottom: 12px;">If you see a black screen or errors:</p>
+                <ol style="margin: 12px 0 12px 24px; line-height: 1.7; font-size: 15px; color: #1d1d1f;">
+                    <li style="margin-bottom: 8px;"><strong>Try "Open in New Tab":</strong> Click the button above. Most streams work there due to proper referrer headers.</li>
+                    <li style="margin-bottom: 8px;"><strong>Check if stream is live:</strong> Streaming links expire after events end. Get a fresh URL from the source.</li>
+                    <li style="margin-bottom: 8px;"><strong>Try different stream option:</strong> Use the dropdown to switch between Link-1 HD, Link-2 HD, etc.</li>
+                    <li style="margin-bottom: 8px;"><strong>Install uBlock Origin:</strong> Some streams have ad overlays that block the player. <a href="https://ublockorigin.com/" target="_blank" style="color: #007aff; text-decoration: none;">Get uBlock</a></li>
+                </ol>
+            </div>
+            
+            <div style="background: #f5f5f7; padding: 20px; border-radius: 10px; margin-top: 16px;">
+                <p style="font-weight: 600; font-size: 17px; color: #1d1d1f; margin-bottom: 12px;">Common Error Meanings:</p>
+                <ul style="margin: 12px 0 0 24px; line-height: 1.7; font-size: 15px; color: #1d1d1f;">
+                    <li style="margin-bottom: 8px;"><strong>404 Not Found:</strong> Stream segment missing (likely expired/offline)</li>
+                    <li style="margin-bottom: 8px;"><strong>403 Forbidden:</strong> Server blocking localhost (use "Open in New Tab")</li>
+                    <li style="margin-bottom: 8px;"><strong>Blocked popup:</strong> ✅ Good! Our security is working</li>
+                    <li style="margin-bottom: 8px;"><strong>CORS error:</strong> Use "Open in New Tab" to bypass</li>
+                </ul>
+            </div>
+            
+            <button onclick="document.getElementById('troubleshootingGuide').style.display='none'" style="margin-top: 20px; padding: 10px 20px; background: #007aff; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.2s;">Close Guide</button>
+        </div>
+        
+        <div class="player-section" id="playerSection">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 id="streamTitle" style="margin: 0;">Stream Viewer</h2>
+                <button onclick="document.getElementById('troubleshootingGuide').style.display='block'" style="padding: 10px 20px; background: #007aff; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);">❓ Troubleshooting</button>
+            </div>
+            
+            <div class="stream-selector" id="streamSelector" style="display: none;">
+                <label for="streamSelect">Select Stream:</label>
+                <select id="streamSelect" onchange="changeStream()">
+                    <option value="">Choose a stream...</option>
+                </select>
+            </div>
+            
+            <div class="player-container" id="playerContainer">
+                <!-- Stream will be loaded here -->
+            </div>
+            
+            <div class="info" id="info">
+                <h3>Stream Information</h3>
+                <ul id="infoList"></ul>
+            </div>
+            
+            <!-- Real-Time Block Monitor -->
+            <div id="blockMonitor" style="margin-top: 20px; background: #ffffff; border-radius: 12px; padding: 20px; border: 1.5px solid #d2d2d7; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="margin: 0; color: #1d1d1f; font-size: 19px; font-weight: 600;">🛡️ Blocked Threats (Live)</h3>
+                    <div>
+                        <span id="blockCount" style="background: #ff3b30; color: white; padding: 4px 12px; border-radius: 12px; font-size: 15px; font-weight: 600; margin-right: 10px;">0</span>
+                        <button onclick="clearBlockMonitor()" style="padding: 6px 14px; background: #007aff; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s;">Clear</button>
+                    </div>
+                </div>
+                <div id="blockList" style="max-height: 200px; overflow-y: auto; background: #f5f5f7; padding: 12px; border-radius: 8px; font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace; font-size: 12px;">
+                    <div style="color: #86868b;">Monitoring for blocked requests...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Safe Block Monitor - Initialize FIRST before anything else
+        const BlockMonitor = {
+            count: 0,
+            maxEntries: 30,
+            
+            log: function(type, url) {
+                try {
+                    // Safety checks - only proceed if elements exist
+                    const monitor = document.getElementById('blockMonitor');
+                    const list = document.getElementById('blockList');
+                    const counter = document.getElementById('blockCount');
+                    
+                    if (!monitor || !list || !counter) {
+                        console.warn('BlockMonitor: Elements not ready yet');
+                        return;
+                    }
+                    
+                    // Show monitor on first block
+                    if (monitor.style.display === 'none') {
+                        monitor.style.display = 'block';
+                    }
+                    
+                    // Increment count
+                    this.count++;
+                    counter.textContent = this.count;
+                    
+                    // Determine icon and color based on type
+                    let icon = '🚫';
+                    let color = '#e74c3c';
+                    let label = type || 'Blocked';
+                    
+                    if (url && typeof url === 'string') {
+                        if (url.includes('ad') || url.includes('banner')) {
+                            icon = '🎯';
+                            color = '#e67e22';
+                            label = 'Ad';
+                        } else if (url.includes('track') || url.includes('analytic')) {
+                            icon = '📊';
+                            color = '#f1c40f';
+                            label = 'Tracker';
+                        }
+                    }
+                    
+                    if (type === 'popup' || type === 'popunder') {
+                        icon = '🚫';
+                        color = '#e74c3c';
+                        label = 'Popup';
+                    }
+                    
+                    // Create entry
+                    const time = new Date().toLocaleTimeString();
+                    const shortUrl = url && typeof url === 'string' 
+                        ? (url.length > 60 ? url.substring(0, 60) + '...' : url) 
+                        : 'Unknown';
+                    
+                    const entry = document.createElement('div');
+                    entry.style.cssText = `
+                        margin-bottom: 6px; 
+                        padding: 10px 12px; 
+                        background: #ffffff; 
+                        border-radius: 8px; 
+                        border-left: 3px solid ${color};
+                        color: #1d1d1f;
+                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+                    `;
+                    entry.innerHTML = `
+                        <span style="color: ${color}; font-weight: 600; font-size: 14px;">${icon} ${label}</span> 
+                        <span style="color: #86868b; font-size: 12px; margin-left: 8px;">${time}</span>
+                        <div style="color: #86868b; font-size: 12px; margin-top: 4px; word-break: break-all; font-family: 'SF Mono', Monaco, monospace;">${shortUrl}</div>
+                    `;
+                    
+                    // Add to top of list
+                    list.insertBefore(entry, list.firstChild);
+                    
+                    // Limit entries
+                    while (list.children.length > this.maxEntries) {
+                        list.removeChild(list.lastChild);
+                    }
+                } catch (e) {
+                    // Silently fail - don't break the app
+                    console.error('BlockMonitor error (non-fatal):', e);
+                }
+            }
+        };
+        
+        // Safe clear function
+        function clearBlockMonitor() {
+            try {
+                const list = document.getElementById('blockList');
+                const counter = document.getElementById('blockCount');
+                
+                if (list) list.innerHTML = '<div style="color: #86868b;">Monitoring for blocked requests...</div>';
+                if (counter) counter.textContent = '0';
+                
+                BlockMonitor.count = 0;
+            } catch (e) {
+                console.error('Clear monitor error (non-fatal):', e);
+            }
+        }
+        
+        // Global popup blocker with safe monitoring
+        (function() {
+            // Block window.open popups
+            const originalOpen = window.open;
+            window.open = function(url, name, specs) {
+                console.log('Blocked popup attempt:', url);
+                // Safe call to monitor - won't break if monitor fails
+                try {
+                    BlockMonitor.log('popup', url);
+                } catch (e) {
+                    console.error('Monitor log failed (non-fatal):', e);
+                }
+                return null;
+            };
+            
+            // Block popunder attempts
+            window.addEventListener('click', function(e) {
+                // Prevent multiple windows from opening
+                if (e.isTrusted) {
+                    setTimeout(() => {
+                        if (window.opener) {
+                            try {
+                                BlockMonitor.log('popunder', 'Popunder window detected');
+                            } catch (e) {}
+                            window.close();
+                        }
+                    }, 100);
+                }
+            }, true);
+            
+            // Block overlay ads
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) {
+                            // Remove elements that look like overlay ads
+                            if (node.style && (
+                                (node.style.position === 'fixed' && node.style.zIndex > 1000) ||
+                                node.classList.contains('ad-overlay') ||
+                                node.classList.contains('popup-ad')
+                            )) {
+                                try {
+                                    const className = node.className || 'overlay';
+                                    BlockMonitor.log('ad', `Overlay ad removed: ${className}`);
+                                } catch (e) {}
+                                node.remove();
+                            }
+                        }
+                    });
+                });
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        })();
+        
+        let streamData = null;
+        
+        async function extractStream() {
+            const url = document.getElementById('urlInput').value;
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const playerSection = document.getElementById('playerSection');
+            
+            if (!url) {
+                showError('Please enter a URL');
+                return;
+            }
+            
+            loading.classList.add('active');
+            loading.querySelector('p').textContent = 'Analyzing page structure...';
+            error.classList.remove('active');
+            playerSection.classList.remove('active');
+            
+            try {
+                const response = await fetch('/extract', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+                
+                streamData = data;
+                displayStream(data);
+                
+            } catch (err) {
+                showError('Failed to extract stream: ' + err.message);
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+        
+        function displayStream(data) {
+            const playerSection = document.getElementById('playerSection');
+            const playerContainer = document.getElementById('playerContainer');
+            const streamTitle = document.getElementById('streamTitle');
+            const streamSelector = document.getElementById('streamSelector');
+            const streamSelect = document.getElementById('streamSelect');
+            const infoList = document.getElementById('infoList');
+            
+            streamTitle.textContent = data.title || 'Stream Viewer';
+            
+            // Clear previous content
+            playerContainer.innerHTML = '';
+            streamSelect.innerHTML = '<option value="">Choose a stream...</option>';
+            infoList.innerHTML = '';
+            
+            // Populate stream selector showing ALL iframes with clear labels
+            if (data.iframes && data.iframes.length > 0) {
+                let playerIframeIndex = 0;
+                let playerCount = 0;
+                
+                data.iframes.forEach((iframe, index) => {
+                    const src = iframe.src.toLowerCase();
+                    const isChat = src.includes('chatango') || src.includes('chat');
+                    const isAd = src.includes('dtscout') || src.includes('analytics') || src.includes('ads');
+                    const isPlayer = src.includes('player') || src.includes('stream') || src.includes('embed') || src.includes('video');
+                    
+                    let label = '';
+                    let prefix = '';
+                    
+                    // Use custom label if provided (from stream link buttons)
+                    if (iframe.label) {
+                        playerCount++;
+                        label = iframe.label;
+                        prefix = '[STREAM] ';
+                        if (playerCount === 1) playerIframeIndex = index;
+                    } else if (isPlayer && !isChat && !isAd) {
+                        playerCount++;
+                        label = `VIDEO STREAM ${playerCount}`;
+                        prefix = '[STREAM] ';
+                        if (playerCount === 1) playerIframeIndex = index;
+                    } else if (isChat) {
+                        label = 'CHAT';
+                        prefix = '[CHAT] ';
+                    } else if (isAd) {
+                        label = 'TRACKING/ADS';
+                        prefix = '[BLOCKED] ';
+                    } else {
+                        label = `UNKNOWN ${index + 1}`;
+                        prefix = '[?] ';
+                    }
+                    
+                    const option = document.createElement('option');
+                    option.value = index;
+                    // Extract domain name for display
+                    try {
+                        const urlObj = new URL(iframe.src);
+                        const domain = urlObj.hostname.replace('www.', '');
+                        option.textContent = iframe.label ? `${prefix}${label} (${domain})` : `${prefix}${label} - ${domain}`;
+                    } catch(e) {
+                        option.textContent = `${prefix}${label} - ${iframe.src.substring(0, 40)}...`;
+                    }
+                    
+                    // Disable non-player options (but not custom labeled streams)
+                    if ((!isPlayer && !iframe.label) || isChat || isAd) {
+                        option.disabled = true;
+                        option.style.color = '#999';
+                    }
+                    
+                    streamSelect.appendChild(option);
+                });
+                
+                // Add message if only one stream found
+                if (playerCount === 1) {
+                    const separator = document.createElement('option');
+                    separator.disabled = true;
+                    separator.textContent = `━━━━━━━━━━━━━━━━━━━━━`;
+                    streamSelect.appendChild(separator);
+                    
+                    const note = document.createElement('option');
+                    note.disabled = true;
+                    note.textContent = `[INFO] Only 1 stream available for this game`;
+                    streamSelect.appendChild(note);
+                } else if (playerCount > 1) {
+                    const separator = document.createElement('option');
+                    separator.disabled = true;
+                    separator.textContent = `━━━━━━━━━━━━━━━━━━━━━`;
+                    streamSelect.appendChild(separator);
+                    
+                    const note = document.createElement('option');
+                    note.disabled = true;
+                    note.textContent = `[INFO] ${playerCount} streams found! Try both for best quality`;
+                    streamSelect.appendChild(note);
+                }
+                
+                streamSelector.style.display = 'block';
+                
+                // Load the main player by default
+                streamSelect.value = playerIframeIndex;
+                loadIframe(data.iframes[playerIframeIndex]);
+            } else {
+                playerContainer.innerHTML = '<p style="padding: 32px; text-align: center; color: #86868b; font-size: 17px;">No video player found. The stream might be loading dynamically via JavaScript.</p>';
+            }
+            
+            // Display info
+            const info = [
+                `Found ${data.iframes ? data.iframes.length : 0} iframe(s)`
+            ];
+            
+            
+            info.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                infoList.appendChild(li);
+            });
+            
+            playerSection.classList.add('active');
+        }
+        
+        function loadIframe(iframeData) {
+            const playerContainer = document.getElementById('playerContainer');
+            
+            // Check if this stream blocks localhost embedding (like ppvs.su)
+            const url = new URL(iframeData.src);
+            const blocksLocalhost = url.hostname.includes('ppvs.su') || 
+                                   url.hostname.includes('streambtw.com') ||
+                                   url.hostname.includes('v3.sportsonline.si');
+            
+            // Check if this is a known ad-heavy domain
+            const isAdHeavy = url.hostname.includes('thedaddy.to') ||
+                             url.hostname.includes('daddylivestream.com') ||
+                             url.hostname.includes('embedsports.me');
+            
+            // Create iframe with MAXIMUM blocking (DECLARE EARLY!)
+            const iframe = document.createElement('iframe');
+            iframe.src = iframeData.src;
+            iframe.width = '100%';
+            iframe.height = '600';
+            iframe.allowFullscreen = true;
+            
+            // Advanced blocking: disable features that ads use
+            iframe.allow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
+            iframe.setAttribute('referrerpolicy', 'no-referrer');
+            iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-forms');
+            iframe.style.border = 'none';
+            iframe.setAttribute('csp', "default-src 'self' 'unsafe-inline' 'unsafe-eval' *; frame-ancestors 'none'; base-uri 'self';");
+            iframe.setAttribute('loading', 'lazy');
+            
+            // Create a link to open in new tab
+            const linkDiv = document.createElement('div');
+            linkDiv.style.cssText = 'background: #f5f5f7; padding: 20px; margin-bottom: 16px; border-radius: 12px; border: 1px solid #d2d2d7;';
+            linkDiv.innerHTML = `
+                <div style="margin-bottom: 12px; word-break: break-all;"><strong style="color: #1d1d1f; font-size: 15px;">Stream URL:</strong> <span style="color: #86868b; font-size: 14px; font-family: 'SF Mono', Monaco, monospace;">${iframeData.src}</span></div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <a href="${iframeData.src}" target="_blank" style="background: #007aff; color: white; padding: 10px 20px; border-radius: 10px; text-decoration: none; display: inline-block; font-size: 15px; font-weight: 500; transition: all 0.2s;">Open in New Tab</a>
+                    <button onclick="openInPopup('${iframeData.src.replace(/'/g, "\\'")}')" style="background: #34c759; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.2s;">Open in Popup</button>
+                    <button onclick="copyToClipboard('${iframeData.src.replace(/'/g, "\\'")}')" style="background: #5856d6; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.2s;">Copy URL</button>
+                </div>
+            `;
+            
+            // Add iframe load error detection
+            iframe.addEventListener('error', () => {
+                console.warn('Iframe failed to load:', iframeData.src);
+            });
+            
+            // Monitor iframe for load issues
+            let iframeLoadTimeout = setTimeout(() => {
+                // After 30 seconds, check if iframe is still loading
+                console.warn('Iframe taking longer than expected to load');
+            }, 30000);
+            
+            iframe.addEventListener('load', () => {
+                clearTimeout(iframeLoadTimeout);
+                console.log('Iframe loaded successfully');
+            });
+            
+            // Add info message or warning
+            const infoMsg = document.createElement('div');
+            if (blocksLocalhost) {
+                infoMsg.style.cssText = 'background: #fff; color: #1d1d1f; padding: 20px; margin-bottom: 16px; border-radius: 12px; border: 2px solid #ff3b30; box-shadow: 0 2px 8px rgba(255, 59, 48, 0.1);';
+                infoMsg.innerHTML = `
+                    <strong style="color: #ff3b30; font-size: 17px;">⚠️ Embedding Blocked</strong><br>
+                    <p style="margin: 12px 0 0 0; line-height: 1.5; font-size: 15px;">This stream (${url.hostname}) blocks embedding from localhost.<br>
+                    <strong>Solution:</strong> Click "<strong style="color: #007aff;">Open in New Tab</strong>" above to watch this stream.<br>
+                    <span style="font-size: 13px; color: #86868b; margin-top: 8px; display: block;">Reason: The stream provider checks the referring domain and only allows embedding from crackstreams.ms</span></p>
+                `;
+            } else if (isAdHeavy) {
+                infoMsg.style.cssText = 'background: #fff; color: #1d1d1f; padding: 20px; margin-bottom: 16px; border-radius: 12px; border: 2px solid #ff9500; box-shadow: 0 2px 8px rgba(255, 149, 0, 0.1);';
+                infoMsg.innerHTML = `
+                    <strong style="color: #ff9500; font-size: 17px;">⚠️ Ad Warning</strong><br>
+                    <p style="margin: 12px 0 0 0; line-height: 1.5; font-size: 15px;">This stream provider (${url.hostname}) includes ads that we can't block from inside the iframe.<br>
+                    <strong>Recommendation:</strong><br>
+                    • <strong>Best:</strong> Install <a href="https://ublockorigin.com/" target="_blank" style="color: #007aff; text-decoration: none; font-weight: 600;">uBlock Origin</a> browser extension (blocks 99% of ads)<br>
+                    • <strong>Alternative:</strong> Click "Open in New Tab" and use your browser's built-in ad blocker<br>
+                    <span style="font-size: 13px; color: #86868b; margin-top: 8px; display: block;">Note: We're blocking popups, but can't remove ads that are part of the stream page itself due to browser security restrictions.</span></p>
+                `;
+            } else {
+                infoMsg.style.cssText = 'background: #f5f5f7; color: #1d1d1f; padding: 16px 20px; margin-bottom: 16px; border-radius: 12px; border: 1px solid #d2d2d7;';
+                infoMsg.innerHTML = `
+                    <strong style="font-size: 15px;">🛡️ Popup Blocker Active</strong><br>
+                    <p style="margin: 8px 0 0 0; line-height: 1.5; font-size: 14px; color: #86868b;">This page blocks popups from the embedded player. However, some may still appear when opened in a new tab.<br>
+                    <strong style="color: #1d1d1f;">Tip:</strong> Use a browser extension like uBlock Origin or enable your browser's popup blocker for best results.</p>
+                `;
+            }
+            
+            // Prepare container
+            playerContainer.innerHTML = '';
+            playerContainer.appendChild(linkDiv);
+            playerContainer.appendChild(infoMsg);
+            
+            // Only embed iframe if it doesn't block localhost
+            if (blocksLocalhost) {
+                const warningPlaceholder = document.createElement('div');
+                warningPlaceholder.style.cssText = 'background: #000; color: white; padding: 60px 20px; text-align: center; border-radius: 8px; font-size: 18px;';
+                warningPlaceholder.innerHTML = `
+                    <div style="font-size: 48px; margin-bottom: 20px;">🚫</div>
+                    <strong>This stream cannot be embedded from localhost</strong><br><br>
+                    <a href="${iframeData.src}" target="_blank" style="background: #764ba2; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; display: inline-block; font-size: 20px; margin-top: 10px;">▶️ Click Here to Watch</a>
+                `;
+                playerContainer.appendChild(warningPlaceholder);
+            } else {
+                playerContainer.appendChild(iframe);
+            }
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Stream URL copied to clipboard!');
+            }).catch(() => {
+                alert('Failed to copy. URL: ' + text);
+            });
+        }
+        
+        function openInPopup(url) {
+            // Open in a popup window with specific dimensions
+            const width = 1280;
+            const height = 720;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+            window.open(url, 'StreamPlayer', `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+        }
+        
+        
+        function changeStream() {
+            const select = document.getElementById('streamSelect');
+            const index = parseInt(select.value);
+            
+            if (!isNaN(index) && streamData && streamData.iframes && streamData.iframes[index]) {
+                loadIframe(streamData.iframes[index]);
+            }
+        }
+        
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.classList.add('active');
+        }
+        
+        // Allow Enter key to submit
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                extractStream();
+            }
+        });
+    </script>
+</body>
+</html>
+

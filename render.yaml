@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: stream-iframe-extractor
+    env: docker
+    plan: starter  # Change to 'free' for free tier (slower)
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: PYTHONUNBUFFERED
+        value: 1
+
