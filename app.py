@@ -73,16 +73,17 @@ def extract_stream():
         driver = get_selenium_driver()
         driver.get(url)
         
-        # Wait for JavaScript to load
-        time.sleep(12)
-        
-        # Wait for page to be fully loaded
+        # Wait for page to be fully loaded (smarter approach)
         try:
+            # Wait for readyState to be complete (max 10 seconds)
             WebDriverWait(driver, 10).until(
                 lambda d: d.execute_script('return document.readyState') == 'complete'
             )
+            # Give JavaScript 3 more seconds to populate dynamic content
+            time.sleep(3)
         except Exception as e:
-            pass
+            # Fallback: wait 6 seconds if readyState check fails
+            time.sleep(6)
         
         # Get the fully rendered page source
         page_source = driver.page_source
