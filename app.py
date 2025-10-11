@@ -23,9 +23,11 @@ def get_selenium_driver():
     
     # Block popups and ads
     chrome_options.add_argument('--disable-popup-blocking')
+    chrome_options.add_argument('--block-new-web-contents')
     chrome_options.add_experimental_option('prefs', {
         'profile.default_content_setting_values.notifications': 2,
-        'profile.default_content_setting_values.popups': 2
+        'profile.default_content_setting_values.popups': 2,
+        'profile.default_content_setting_values.automatic_downloads': 2
     })
     
     # Check if we're in production (Docker/Render) - use system Chrome
@@ -71,17 +73,16 @@ def extract_stream():
         driver = get_selenium_driver()
         driver.get(url)
         
-        # Wait for page to be fully loaded (smarter approach)
+        # Wait for JavaScript to load
+        time.sleep(12)
+        
+        # Wait for page to be fully loaded
         try:
-            # Wait for readyState to be complete (max 10 seconds)
             WebDriverWait(driver, 10).until(
                 lambda d: d.execute_script('return document.readyState') == 'complete'
             )
-            # Give JavaScript 3 more seconds to populate dynamic content
-            time.sleep(3)
         except Exception as e:
-            # Fallback: wait 6 seconds if readyState check fails
-            time.sleep(6)
+            pass
         
         # Get the fully rendered page source
         page_source = driver.page_source

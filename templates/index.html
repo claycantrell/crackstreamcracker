@@ -339,16 +339,135 @@
                 <ul id="infoList"></ul>
             </div>
             
+            <!-- Real-Time Block Monitor -->
+            <div id="blockMonitor" style="margin-top: 20px; background: #ffffff; border-radius: 12px; padding: 20px; border: 1.5px solid #d2d2d7; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="margin: 0; color: #1d1d1f; font-size: 19px; font-weight: 600;">🛡️ Blocked Threats (Live)</h3>
+                    <div>
+                        <span id="blockCount" style="background: #ff3b30; color: white; padding: 4px 12px; border-radius: 12px; font-size: 15px; font-weight: 600; margin-right: 10px;">0</span>
+                        <button onclick="clearBlockMonitor()" style="padding: 6px 14px; background: #007aff; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s;">Clear</button>
+                    </div>
+                </div>
+                <div id="blockList" style="max-height: 200px; overflow-y: auto; background: #f5f5f7; padding: 12px; border-radius: 8px; font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace; font-size: 12px;">
+                    <div style="color: #86868b;">Monitoring for blocked requests...</div>
+                </div>
+            </div>
         </div>
     </div>
     
     <script>
-        // Global popup blocker
+        // Safe Block Monitor - Initialize FIRST before anything else
+        const BlockMonitor = {
+            count: 0,
+            maxEntries: 30,
+            
+            log: function(type, url) {
+                try {
+                    // Safety checks - only proceed if elements exist
+                    const monitor = document.getElementById('blockMonitor');
+                    const list = document.getElementById('blockList');
+                    const counter = document.getElementById('blockCount');
+                    
+                    if (!monitor || !list || !counter) {
+                        console.warn('BlockMonitor: Elements not ready yet');
+                        return;
+                    }
+                    
+                    // Show monitor on first block
+                    if (monitor.style.display === 'none') {
+                        monitor.style.display = 'block';
+                    }
+                    
+                    // Increment count
+                    this.count++;
+                    counter.textContent = this.count;
+                    
+                    // Determine icon and color based on type
+                    let icon = '🚫';
+                    let color = '#e74c3c';
+                    let label = type || 'Blocked';
+                    
+                    if (url && typeof url === 'string') {
+                        if (url.includes('ad') || url.includes('banner')) {
+                            icon = '🎯';
+                            color = '#e67e22';
+                            label = 'Ad';
+                        } else if (url.includes('track') || url.includes('analytic')) {
+                            icon = '📊';
+                            color = '#f1c40f';
+                            label = 'Tracker';
+                        }
+                    }
+                    
+                    if (type === 'popup' || type === 'popunder') {
+                        icon = '🚫';
+                        color = '#e74c3c';
+                        label = 'Popup';
+                    }
+                    
+                    // Create entry
+                    const time = new Date().toLocaleTimeString();
+                    const shortUrl = url && typeof url === 'string' 
+                        ? (url.length > 60 ? url.substring(0, 60) + '...' : url) 
+                        : 'Unknown';
+                    
+                    const entry = document.createElement('div');
+                    entry.style.cssText = `
+                        margin-bottom: 6px; 
+                        padding: 10px 12px; 
+                        background: #ffffff; 
+                        border-radius: 8px; 
+                        border-left: 3px solid ${color};
+                        color: #1d1d1f;
+                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+                    `;
+                    entry.innerHTML = `
+                        <span style="color: ${color}; font-weight: 600; font-size: 14px;">${icon} ${label}</span> 
+                        <span style="color: #86868b; font-size: 12px; margin-left: 8px;">${time}</span>
+                        <div style="color: #86868b; font-size: 12px; margin-top: 4px; word-break: break-all; font-family: 'SF Mono', Monaco, monospace;">${shortUrl}</div>
+                    `;
+                    
+                    // Add to top of list
+                    list.insertBefore(entry, list.firstChild);
+                    
+                    // Limit entries
+                    while (list.children.length > this.maxEntries) {
+                        list.removeChild(list.lastChild);
+                    }
+                } catch (e) {
+                    // Silently fail - don't break the app
+                    console.error('BlockMonitor error (non-fatal):', e);
+                }
+            }
+        };
+        
+        // Safe clear function
+        function clearBlockMonitor() {
+            try {
+                const list = document.getElementById('blockList');
+                const counter = document.getElementById('blockCount');
+                
+                if (list) list.innerHTML = '<div style="color: #86868b;">Monitoring for blocked requests...</div>';
+                if (counter) counter.textContent = '0';
+                
+                BlockMonitor.count = 0;
+            } catch (e) {
+                console.error('Clear monitor error (non-fatal):', e);
+            }
+        }
+        
+        // Global popup blocker with safe monitoring
         (function() {
             // Block window.open popups
             const originalOpen = window.open;
             window.open = function(url, name, specs) {
                 console.log('Blocked popup attempt:', url);
+                // Safe call to monitor - won't break if monitor fails
+                try {
+                    BlockMonitor.log('popup', url);
+                } catch (e) {
+                    console.error('Monitor log failed (non-fatal):', e);
+                }
                 return null;
             };
             
@@ -358,6 +477,9 @@
                 if (e.isTrusted) {
                     setTimeout(() => {
                         if (window.opener) {
+                            try {
+                                BlockMonitor.log('popunder', 'Popunder window detected');
+                            } catch (e) {}
                             window.close();
                         }
                     }, 100);
@@ -375,6 +497,10 @@
                                 node.classList.contains('ad-overlay') ||
                                 node.classList.contains('popup-ad')
                             )) {
+                                try {
+                                    const className = node.className || 'overlay';
+                                    BlockMonitor.log('ad', `Overlay ad removed: ${className}`);
+                                } catch (e) {}
                                 node.remove();
                             }
                         }
