@@ -14,34 +14,19 @@ app = Flask(__name__)
 def get_selenium_driver():
     """Initialize a headless Chrome driver"""
     chrome_options = Options()
-    chrome_options.add_argument('--headless=new')  # Use new headless mode
+    chrome_options.add_argument('--headless')
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--disable-dev-shm-usage')
     chrome_options.add_argument('--disable-gpu')
-    chrome_options.add_argument('--disable-software-rasterizer')
-    chrome_options.add_argument('--disable-extensions')
-    chrome_options.add_argument('--disable-background-networking')
-    chrome_options.add_argument('--disable-sync')
-    chrome_options.add_argument('--metrics-recording-only')
-    chrome_options.add_argument('--mute-audio')
-    chrome_options.add_argument('--no-first-run')
-    chrome_options.add_argument('--window-size=1280,720')  # Smaller window = less memory
-    chrome_options.add_argument('--single-process')  # Use single process to reduce memory
+    chrome_options.add_argument('--window-size=1920,1080')
     chrome_options.add_argument('user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-    
-    # Memory optimizations
-    chrome_options.add_argument('--disable-features=VizDisplayCompositor')
-    chrome_options.add_argument('--js-flags=--max-old-space-size=512')  # Limit JS heap
     
     # Block popups and ads
     chrome_options.add_argument('--disable-popup-blocking')
-    chrome_options.add_argument('--block-new-web-contents')
     chrome_options.add_experimental_option('prefs', {
         'profile.default_content_setting_values.notifications': 2,
-        'profile.default_content_setting_values.popups': 2,
-        'profile.default_content_setting_values.automatic_downloads': 2
+        'profile.default_content_setting_values.popups': 2
     })
-    chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
     
     # Check if we're in production (Docker/Render) - use system Chrome
     if os.environ.get('CHROME_BIN') or os.path.exists('/usr/bin/chromium'):
