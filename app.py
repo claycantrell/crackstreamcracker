@@ -30,16 +30,22 @@ def get_selenium_driver():
         'profile.default_content_setting_values.automatic_downloads': 2
     })
     
-    # Get chromedriver path and fix webdriver-manager bug
-    driver_path = ChromeDriverManager().install()
-    # The path might point to wrong file, so fix it
-    if 'THIRD_PARTY_NOTICES' in driver_path or 'LICENSE' in driver_path:
-        driver_dir = os.path.dirname(driver_path)
-        driver_path = os.path.join(driver_dir, 'chromedriver')
-    
-    # Ensure chromedriver has execute permissions
-    if os.path.exists(driver_path):
-        os.chmod(driver_path, os.stat(driver_path).st_mode | stat.S_IEXEC)
+    # Check if we're in production (Docker/Render) - use system Chrome
+    if os.environ.get('CHROME_BIN') or os.path.exists('/usr/bin/chromium'):
+        # Production: use system Chrome/ChromeDriver
+        chrome_options.binary_location = os.environ.get('CHROME_BIN', '/usr/bin/chromium')
+        driver_path = os.environ.get('CHROMEDRIVER_BIN', '/usr/bin/chromedriver')
+    else:
+        # Local development: use webdriver-manager
+        driver_path = ChromeDriverManager().install()
+        # The path might point to wrong file, so fix it
+        if driver_path and ('THIRD_PARTY_NOTICES' in driver_path or 'LICENSE' in driver_path):
+            driver_dir = os.path.dirname(driver_path)
+            driver_path = os.path.join(driver_dir, 'chromedriver')
+        
+        # Ensure chromedriver has execute permissions
+        if driver_path and os.path.exists(driver_path):
+            os.chmod(driver_path, os.stat(driver_path).st_mode | stat.S_IEXEC)
     
     service = Service(driver_path)
     driver = webdriver.Chrome(service=service, options=chrome_options)
