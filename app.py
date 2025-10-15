@@ -65,6 +65,14 @@ def extract_stream():
     try:
         data = request.get_json()
         url = data.get('url', '')
+        consent = data.get('consent', {})
+        
+        # Validate consent
+        if not consent.get('given') or not consent.get('timestamp'):
+            return jsonify({'error': 'You must agree to the terms before using this service'}), 403
+        
+        # Log consent for audit trail (in production, store in database)
+        print(f"[CONSENT] User accepted terms at {consent.get('timestamp')} for URL: {url}")
         
         if not url:
             return jsonify({'error': 'URL is required'}), 400
