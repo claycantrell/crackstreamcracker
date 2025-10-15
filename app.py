@@ -7,6 +7,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
 app = Flask(__name__)
@@ -20,6 +21,12 @@ def get_selenium_driver():
     chrome_options.add_argument('--disable-gpu')
     chrome_options.add_argument('--window-size=1920,1080')
     chrome_options.add_argument('user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+    
+    # Performance optimizations
+    chrome_options.add_argument('--disable-extensions')
+    chrome_options.add_argument('--disable-images')
+    chrome_options.add_argument('--blink-settings=imagesEnabled=false')
+    chrome_options.page_load_strategy = 'eager'  # Don't wait for all resources
     
     # Block popups and ads
     chrome_options.add_argument('--disable-popup-blocking')
@@ -79,14 +86,26 @@ def extract_stream():
         
         # Initialize Selenium driver
         driver = get_selenium_driver()
+        driver.set_page_load_timeout(10)
         driver.get(url)
         
-        # Wait for JavaScript to load
-        time.sleep(12)
-        
-        # Wait for page to be fully loaded
+        # Smart wait: Wait for iframes to appear (usually 3-5 seconds for streaming sites)
+        iframe_wait = 8
         try:
-            WebDriverWait(driver, 10).until(
+            # Wait for at least one iframe or specific elements to load
+            WebDriverWait(driver, iframe_wait).until(
+                lambda d: len(d.find_elements(By.TAG_NAME, 'iframe')) > 0 or
+                         len(d.find_elements(By.TAG_NAME, 'script')) > 5
+            )
+            # Give JS a moment to populate iframe sources
+            time.sleep(2)
+        except:
+            # Fallback if no iframes detected quickly
+            time.sleep(5)
+        
+        # Ensure page scripts have executed
+        try:
+            WebDriverWait(driver, 3).until(
                 lambda d: d.execute_script('return document.readyState') == 'complete'
             )
         except Exception as e:
