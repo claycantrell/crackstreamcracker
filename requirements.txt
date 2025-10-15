@@ -1,7 +1,43 @@
+# Core Web Framework
+# ------------------
 flask==3.0.0
-beautifulsoup4==4.12.2
-html5lib==1.1
-selenium==4.15.2
-webdriver-manager==4.0.1
-gunicorn==21.2.0
+# Flask: Lightweight web framework (routes, templates, JSON responses)
+# Why Flask? Simple to learn, great for small-medium apps
+# Alternatives: Django (full-featured), FastAPI (async)
 
+flask-limiter==3.5.0
+# Rate limiting extension for Flask (prevents abuse/DoS attacks)
+# Limits requests per IP: 5/min for extraction, 100/day globally
+# Production: Use Redis backend instead of in-memory storage
+
+# Web Scraping & HTML Parsing
+# ---------------------------
+beautifulsoup4==4.12.2
+# BeautifulSoup: HTML/XML parser (navigates & searches parsed trees)
+# Use cases: Extract text, find tags, parse malformed HTML
+# Learns: CSS selectors, tree traversal, find() vs find_all()
+
+html5lib==1.1
+# HTML5 parser (used by BeautifulSoup for robust parsing)
+# Why? More forgiving than lxml for malformed HTML (common on streaming sites)
+# Trade-off: Slower but handles edge cases better
+
+# Browser Automation
+# ------------------
+selenium==4.15.2
+# Selenium: Automates real browsers (headless Chrome for server-side rendering)
+# Why? JavaScript-heavy sites load content dynamically after initial HTML
+# Key concepts: WebDriver, element locators, explicit/implicit waits
+
+webdriver-manager==4.0.1
+# Auto-downloads correct ChromeDriver version for your Chrome install
+# Solves: "ChromeDriver version mismatch" errors (common beginner issue)
+# Production: Use system packages instead for stability
+
+# Production Web Server
+# ---------------------
+gunicorn==21.2.0
+# Gunicorn: Production WSGI server (replaces Flask dev server)
+# Why? Flask's dev server is single-threaded and not secure for production
+# Config: Multi-worker, timeout handling, better concurrency
+# Alternative: uWSGI (more complex), waitress (Windows-friendly)

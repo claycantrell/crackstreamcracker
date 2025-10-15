@@ -1,28 +1,83 @@
-/* Mobile-First CSS - Base styles for mobile devices */
+/* ============================================================================
+   MOBILE-FIRST RESPONSIVE CSS (Educational Guide)
+   ============================================================================
+   
+   What is Mobile-First Design?
+   -----------------------------
+   1. Start with mobile styles (base CSS)
+   2. Add @media queries for larger screens
+   3. Progressive enhancement (vs. graceful degradation)
+   
+   Why Mobile-First?
+   -----------------
+   - Most users browse on mobile
+   - Forces focus on essential content
+   - Faster on mobile (loads less CSS initially)
+   - Easier to scale up than scale down
+   
+   Key CSS Concepts Demonstrated:
+   - Flexbox for layouts
+   - Media queries (breakpoints)
+   - CSS variables (custom properties)
+   - box-sizing: border-box
+   - rem vs em vs px units
+   - Responsive typography
+   
+   Learning Resources:
+   - Flexbox: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
+   - Media Queries: https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries
+   ============================================================================ */
+
+/* ============================================================================
+   GLOBAL RESET & BASE STYLES
+   ============================================================================ */
+
+/* Universal selector (*): Applies to ALL elements */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+    margin: 0;      /* Remove default margins */
+    padding: 0;     /* Remove default padding */
+    box-sizing: border-box;  /* Include padding/border in width calculations */
+    /* 
+       box-sizing explained:
+       - content-box (default): width = content only
+       - border-box: width = content + padding + border (easier to work with!)
+    */
 }
 
+/* Body: Top-level container for visible content */
 body {
+    /* System font stack: Uses native fonts for better performance */
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background: #f5f5f7;
-    min-height: 100vh;
-    padding: 16px;
-    color: #1d1d1f;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    background: #f5f5f7;    /* Light gray background */
+    min-height: 100vh;      /* 100% of viewport height */
+    padding: 16px;          /* Breathing room on edges */
+    color: #1d1d1f;         /* Dark text for readability */
+    
+    /* Font smoothing: Makes text look crisper on Mac/Linux */
+    -webkit-font-smoothing: antialiased;     /* Safari/Chrome */
+    -moz-osx-font-smoothing: grayscale;      /* Firefox */
 }
+
+/* ============================================================================
+   LAYOUT COMPONENTS
+   ============================================================================ */
 
 .container {
-    max-width: 100%;
-    margin: 0 auto;
+    max-width: 100%;        /* Full width on mobile */
+    margin: 0 auto;         /* Center horizontally (when max-width applies) */
+    /* margin: 0 auto trick:
+       - 0: No top/bottom margin
+       - auto: Browser calculates left/right margins equally (centers element)
+    */
 }
 
+/* ============================================================================
+   HEADER SECTION
+   ============================================================================ */
+
 .header {
-    text-align: center;
-    margin-bottom: 24px;
+    text-align: center;     /* Center text horizontally */
+    margin-bottom: 24px;    /* Space below header */
 }
 
 .header h1 {
