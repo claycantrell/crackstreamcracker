@@ -4,8 +4,6 @@
 
 A local web application demonstrating server-side rendering and iframe extraction from JavaScript-heavy webpages using Python, Selenium, and BeautifulSoup. This project teaches full-stack web development, browser automation, and responsible web scraping practices.
 
-See it in action here: https://stream-iframe-extractor.onrender.com/
-
 ## ⚖️ Legal Disclaimer
 
 **FOR EDUCATIONAL AND RESEARCH PURPOSES ONLY**
